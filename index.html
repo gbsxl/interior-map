@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia de Cidades — Interior Pacífico no Brasil</title>
+<link rel="preconnect" href="https://tiles.openfreemap.org">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+<style>
+:root{
+  --bg:#111512;
+  --surface:#191e1a;
+  --surface2:#222923;
+  --ink:#d6aa4a;
+  --muted:#9da89f;
+  --line:#303a32;
+  --brand:#6fa77a;
+  --brand2:#8bc596;
+  --gold:#d6aa4a;
+  --danger:#e06b6b;
+  --shadow:0 10px 30px rgba(0,0,0,.28);
+  --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hero{background:radial-gradient(circle at 80% 10%,rgba(139,178,117,.25),transparent 35%),linear-gradient(135deg,#1e3524,#315c3b 58%,#527c56);color:#fff;padding:54px 24px 38px}
+.hero-inner{max-width:1320px;margin:auto}
+.eyebrow{font-size:.76rem;text-transform:uppercase;letter-spacing:.16em;font-weight:800;opacity:.78;margin-bottom:12px}
+.hero h1{font-size:clamp(2rem,4vw,3.6rem);line-height:1.03;max-width:850px;letter-spacing:-.04em}
+.hero p{max-width:760px;margin-top:16px;color:rgba(255,255,255,.84);font-size:1.05rem}
+.hero-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.hero-pill{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.10);padding:8px 12px;border-radius:999px;font-size:.86rem}
+.container{max-width:1320px;margin:auto;padding:24px}
+.intro{margin-top:-18px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:20px;padding:22px 24px;position:relative}
+.intro strong{color:var(--brand)}
+.notice{margin-top:10px;color:var(--muted);font-size:.86rem}
+.controls{position:sticky;top:10px;z-index:30;margin:22px 0;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:18px;padding:14px;display:grid;grid-template-columns:minmax(230px,2fr) repeat(3,minmax(150px,1fr)) auto;gap:10px}
+.field{position:relative}
+.field input,.field select{width:100%;height:44px;border:1px solid var(--line);border-radius:12px;background:#fafbf9;color:var(--ink);padding:0 12px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--brand2);box-shadow:0 0 0 3px rgba(71,122,82,.12)}
+.view-toggle{display:flex;gap:5px;background:var(--surface2);padding:4px;border-radius:12px}
+.view-toggle button{border:0;background:transparent;padding:8px 11px;border-radius:9px;color:var(--muted);font-weight:700;font-size:.82rem}
+.view-toggle button.active{background:var(--surface);color:var(--brand);box-shadow:0 2px 7px rgba(0,0,0,.08)}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.summary-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.summary-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:800}
+.summary-value{font-size:1.45rem;font-weight:850;margin-top:3px;color:var(--brand)}
+.summary-detail{font-size:.78rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.city-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 5px 18px rgba(25,40,28,.05);transition:.22s;display:flex;flex-direction:column}
+.city-card:hover{transform:translateY(-4px);box-shadow:0 15px 35px rgba(25,40,28,.11);border-color:#c8d5c8}
+.photo-strip{height:205px;display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;gap:3px;background:#dfe5dd}
+.photo-strip img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-strip img:first-child{grid-row:1/3}
+.card-body{padding:18px}
+.city-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.city-name{font-size:1.3rem;font-weight:850;letter-spacing:-.025em}
+.city-state{color:var(--muted);font-size:.82rem;margin-top:2px}
+.rank-badge{background:#edf4e9;color:var(--brand);font-weight:800;padding:5px 8px;border-radius:9px;font-size:.72rem;white-space:nowrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:13px 0}
+.chip{font-size:.72rem;font-weight:750;padding:5px 8px;border-radius:999px;background:var(--surface2);color:#4d5a4e}
+.chip.good{background:#e7f2e5;color:#2d6937}.chip.warn{background:#fff2da;color:#8b6420}
+.description{font-size:.87rem;color:#596259;margin-bottom:15px}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.metric{background:#f7f8f5;border:1px solid #e8ece6;border-radius:12px;padding:10px}
+.metric-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:#7a827b;font-weight:800}
+.metric-value{font-weight:850;margin-top:2px}
+.score-list{margin:15px 0}
+.score{display:grid;grid-template-columns:86px 1fr 30px;align-items:center;gap:8px;font-size:.76rem;margin:8px 0}
+.score-label{color:#687168}
+.bar{height:7px;background:#e4e9e2;border-radius:999px;overflow:hidden}
+.bar i{height:100%;display:block;background:linear-gradient(90deg,#7eaa72,#315c3b);border-radius:999px}
+.score-num{text-align:right;font-weight:850;color:var(--brand)}
+.budget{border-top:1px solid var(--line);padding-top:14px;margin-top:auto}
+.budget-row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.budget-title{font-size:.75rem;color:var(--muted);font-weight:750}
+.budget-value{font-weight:850;color:var(--brand);font-size:.92rem}
+.rent-share{font-size:.72rem;color:var(--muted);margin-top:4px}
+.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:13px}
+.action{border:1px solid var(--line);background:#fff;color:var(--ink);text-decoration:none;text-align:center;border-radius:10px;padding:9px 7px;font-size:.74rem;font-weight:800;transition:.18s}
+.action:hover{background:var(--surface2);border-color:#c5d2c5;color:var(--brand)}
+.action.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.action.primary:hover{background:#25482e}
+.featured{outline:2px solid rgba(199,149,53,.28);outline-offset:-2px}
+.map-container{display:none;height:620px;border-radius:20px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);position:relative}
+.map-container.active{display:block}
+#map{width:100%;height:100%}
+.map-hint{position:absolute;z-index:5;top:14px;left:14px;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);padding:10px 13px;border-radius:12px;font-size:.78rem;color:var(--muted);box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.table-wrap{display:none;overflow:auto;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:var(--shadow)}
+.table-wrap.active{display:block}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;font-size:.82rem}
+th{background:#253d2b;color:#fff;position:sticky;top:0}
+tr:hover td{background:#f6f8f5}
+.modal{position:fixed;inset:0;background:rgba(14,23,16,.6);backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal.open{display:flex}
+.modal-box{width:min(1000px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:24px;box-shadow:0 25px 80px rgba(0,0,0,.3)}
+.modal-head{position:sticky;top:0;z-index:2;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:17px 20px;display:flex;justify-content:space-between;align-items:center}
+.close{border:0;background:var(--surface2);width:36px;height:36px;border-radius:50%;font-size:1.2rem}
+.modal-content{padding:20px}
+.detail-hero{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+.detail-photos{display:grid;grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;height:310px;gap:4px}
+.detail-photos img{width:100%;height:100%;object-fit:cover}
+.detail-photos img:first-child{grid-row:1/3}
+.detail-summary{background:#f5f7f3;border:1px solid var(--line);border-radius:17px;padding:18px}
+.detail-summary h2{font-size:1.7rem}
+.detail-map{height:250px;border-radius:15px;overflow:hidden;margin-top:18px;border:1px solid var(--line)}
+.detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+.detail-actions a{padding:9px 12px;border-radius:10px;text-decoration:none;font-size:.78rem;font-weight:800;background:var(--brand);color:#fff}
+.detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.empty{padding:50px 20px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--line);border-radius:18px}
+.footer-note{color:var(--muted);font-size:.75rem;margin:25px 0 5px;text-align:center}
+@media(max-width:1050px){.controls{grid-template-columns:1fr 1fr}.view-toggle{grid-column:1/-1}.grid{grid-template-columns:repeat(2,1fr)}.summary{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.container{padding:14px}.hero{padding:38px 18px 30px}.controls{position:static;grid-template-columns:1fr}.grid{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr}.detail-hero{grid-template-columns:1fr}.detail-grid{grid-template-columns:1fr 1fr}.photo-strip{height:185px}}
+</style>
+
+</head>
+<body>
+<header class="hero">
+ <div class="hero-inner">
+  <div class="eyebrow">Guia de decisão · morar bem gastando menos</div>
+  <h1>Onde morar no interior do Brasil?</h1>
+  <p>Um painel para comparar cidades pequenas e médias pelo que realmente importa: aluguel, clima, segurança, tranquilidade, silêncio, praia e capacidade de viver bem com R$ 5–6 mil por mês para um casal.</p>
+  <div class="hero-meta">
+   <span class="hero-pill">29 cidades presentes neste arquivo</span>
+   <span class="hero-pill">9 estados</span>
+   <span class="hero-pill">Mapa + comparação + pesquisa externa</span>
+  </div>
+ </div>
+</header>
+<main class="container">
+ <section class="intro">
+  <strong>Como usar:</strong> filtre e ordene as cidades, abra o perfil completo e use os atalhos para assistir vídeos da cidade, pesquisar imóveis para aluguel e abrir a localização no mapa.
+  <div class="notice">Os valores e notas abaixo são os dados já presentes no arquivo-base. Os links de YouTube, OLX, Google Maps e pesquisa de turismo são montados automaticamente a partir do nome da cidade.</div>
+ </section>
+
+ <section class="controls">
+  <div class="field"><input id="searchInput" type="search" placeholder="🔎 Cidade, estado ou região"></div>
+  <div class="field"><select id="regionFilter"><option value="">Todos os estados</option><option value="SC">Santa Catarina</option><option value="RS">Rio Grande do Sul</option><option value="MG">Minas Gerais</option><option value="ES">Espírito Santo</option><option value="PB">Paraíba</option><option value="PE">Pernambuco</option><option value="CE">Ceará</option><option value="BA">Bahia</option><option value="AL">Alagoas</option></select></div>
+  <div class="field"><select id="sortBy"><option value="encaixe">Ordenar: melhor encaixe</option><option value="nome">Ordenar: nome</option><option value="aluguel">Aluguel mais baixo</option><option value="qualidade">Qualidade</option><option value="seguranca">Segurança</option><option value="tranquilidade">Tranquilidade</option></select></div>
+  <div class="view-toggle"><button data-view="grid" class="active">▦ Cards</button><button data-view="map">⌖ Mapa</button><button data-view="table">☷ Comparar</button></div>
+ </section>
+
+ <section id="summary" class="summary"></section>
+ <section id="citiesGrid" class="grid"></section>
+ <section id="noResults" class="empty" style="display:none">Nenhuma cidade encontrada com esses filtros.</section>
+ <section id="mapContainer" class="map-container"><div id="map"></div><div class="map-hint">Clique em um ponto para abrir o perfil da cidade.</div></section>
+ <section id="tableWrap" class="table-wrap">
+  <table>
+   <thead><tr><th>Cidade</th><th>Aluguel</th><th>Habitantes</th><th>Clima</th><th>Praia</th><th>Qualidade</th><th>Segurança</th><th>Tranquilidade</th><th>Silêncio</th><th>Casal R$ 5–6k</th></tr></thead>
+   <tbody id="tableBody"></tbody>
+  </table>
+ </section>
+ <div class="footer-note">Guia visual baseado nos dados do HTML original. “Melhor encaixe” considera a média simples de qualidade, segurança, tranquilidade e silêncio; não é um ranking oficial.</div>
+</main>
+
+<div id="modal" class="modal">
+ <div class="modal-box">
+  <div class="modal-head"><div><strong>Perfil da cidade</strong><div id="modalTitle" style="color:var(--muted);font-size:.82rem"></div></div><button id="closeModal" class="close" aria-label="Fechar">×</button></div>
+  <div id="modalContent" class="modal-content"></div>
+ </div>
+</div>
+<script>
+const cidades = [
+            {
+                nome: "Timbó",
+                estado: "SC",
+                region: "Sul",
+                lat: -26.8433,
+                lng: -49.0667,
+                descricao: "32 mil habitantes. Vale Europeu clássico, silêncio moderado, aluguel acessível, vida tranquila, comunidade portuguesa.",
+                aluguel: "R$ 900",
+                aluguelNum: 900,
+                habitantes: "32 mil",
+                altitude: "150m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 8,
+                tranquilidade: 9,
+                silencio: 8,
+                praia: "100 km",
+                casal6k: "Excelente",
+                highlights: ["Vale Europeu", "Tranquilo", "Aluguel acessível", "Comunidade portuguesa"],
+                images: ["https://www.vidadeturista.com/wp-content/uploads/2012/11/morro-azul-timbo-sc-1.jpg", "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/26/a1/76/4c/outra-vista-do-mirante.jpg?w=1000&h=800&s=1", "https://timbopark.com.br/wp-content/uploads/2021/06/Ponte-Thapyoka.jpg"],
+                featured: true
+            },
+            {
+                nome: "Pomerode",
+                estado: "SC",
+                region: "Sul",
+                lat: -26.7525,
+                lng: -49.1425,
+                descricao: "35 mil habitantes. Vale Europeu germanizado, silêncio, aluguel acessível, arquitetura tradicional, muito tranquilo.",
+                aluguel: "R$ 950",
+                aluguelNum: 950,
+                habitantes: "35 mil",
+                altitude: "170m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 8,
+                tranquilidade: 9,
+                silencio: 8,
+                praia: "110 km",
+                casal6k: "Excelente",
+                highlights: ["Vale Germanizado", "Arquitetura tradicional", "Tranquilo", "Aluguel acessível"],
+                images: ["http://naturam.com.br/wp-content/uploads/2017/07/pomerode-sc-sobre.jpg", "https://i.pinimg.com/736x/51/2a/1a/512a1a9ac72bac044c40f82f18135d0e.jpg", "https://i.pinimg.com/736x/fc/3a/1a/fc3a1af497fad3482c05903c74a6784d.jpg"],
+                featured: true
+            },
+            {
+                nome: "Treze Tílias",
+                estado: "SC",
+                region: "Sul",
+                lat: -26.6283,
+                lng: -49.3417,
+                descricao: "6 mil habitantes. Minúsculo, Vale Europeu, cascata famosa, aluguel muito baixo, extremamente tranquilo.",
+                aluguel: "R$ 650",
+                aluguelNum: 650,
+                habitantes: "6 mil",
+                altitude: "950m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 9,
+                tranquilidade: 10,
+                silencio: 10,
+                praia: "200 km",
+                casal6k: "Excelente",
+                highlights: ["Minúsculo", "Cascata", "Aluguel muito baixo", "Vale Europeu"],
+                images: ["https://c8.alamy.com/comp/P3YXHM/paisagem-rural-na-linha-pinhal-treze-tlias-santa-catarina-brasil-P3YXHM.jpg", "https://mediaim.expedia.com/destination/1/4ba3c7d8502868ebb2d3d1fef93e8226.jpg", "https://www.viagensecaminhos.com/wp-content/uploads/2019/02/cascata-praca-treze-tilias.jpg"],
+                featured: true
+            },
+            {
+                nome: "São Bento do Sul",
+                estado: "SC",
+                region: "Sul",
+                lat: -26.2647,
+                lng: -49.3372,
+                descricao: "35 mil habitantes. Serrana, fria, história mineral, tranquila, clima ameno, aluguel moderado.",
+                aluguel: "R$ 1.050",
+                aluguelNum: 1050,
+                habitantes: "35 mil",
+                altitude: "820m",
+                clima: "Temperado",
+                qualidade: 7,
+                seguranca: 8,
+                tranquilidade: 8,
+                silencio: 7,
+                praia: "150 km",
+                casal6k: "Confortável",
+                highlights: ["Serrana", "Clima frio", "Histórica", "Tranquila"],
+                images: ["https://as1.ftcdn.net/jpg/04/55/17/20/1000_F_455172008_2b5uKQSYnJAiuGbrkhwA5jPuR8OcOQtN.jpg", "https://static.ndmais.com.br/2023/12/sao-bento-do-sul-igreja-matriz1-1300x731.jpg", "https://www.ipm.com.br/wp-content/uploads/2025/05/sao-bento-do-sul-cidade-de-santa-catarina.jpg"],
+                featured: true
+            },
+            {
+                nome: "Urubici",
+                estado: "SC",
+                region: "Sul",
+                lat: -27.9583,
+                lng: -49.3583,
+                descricao: "11 mil habitantes. Cânion, paisagem montanhosa, clima frio, tranquilidade, aventura, aluguel baixo.",
+                aluguel: "R$ 800",
+                aluguelNum: 800,
+                habitantes: "11 mil",
+                altitude: "1200m",
+                clima: "Frio",
+                qualidade: 9,
+                seguranca: 8,
+                tranquilidade: 9,
+                silencio: 8,
+                praia: "250 km",
+                casal6k: "Excelente",
+                highlights: ["Cânion", "Montanhoso", "Clima frio", "Aventura"],
+                images: ["https://emalgumlugardomundo.com.br/wp-content/uploads/2023/03/o-que-fazer-em-urubici-canion-espraiado.jpg", "https://static.ndmais.com.br/2019/07/P.-18-foto-3.-FOTO_-MARCUS-ZILLI-800x800.jpg", "https://turismo.uai.com.br/wp-content/uploads/2024/05/unnamed-2024-05-28T094117.984.jpg"],
+                featured: true
+            },
+            {
+                nome: "Rio dos Cedros",
+                estado: "SC",
+                region: "Sul",
+                lat: -26.9533,
+                lng: -49.0833,
+                descricao: "7 mil habitantes. Vale Europeu, português, tranquilo demais, custo muito baixo, silêncio constante.",
+                aluguel: "R$ 700",
+                aluguelNum: 700,
+                habitantes: "7 mil",
+                altitude: "500m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 9,
+                tranquilidade: 10,
+                silencio: 10,
+                praia: "150 km",
+                casal6k: "Excelente",
+                highlights: ["Extremamente tranquilo", "Aluguel muito baixo", "Vale Europeu", "Comunidade pequena"],
+                images: ["https://i.ytimg.com/vi/nBClKshgnsU/maxresdefault.jpg", "https://live.staticflickr.com/3390/3431383267_bbef0b1532_b.jpg", "https://static.ndmais.com.br/2022/10/cachoeira-formosa-por-daniel-lunelli-800x599.jpg"],
+                featured: true
+            },
+            {
+                nome: "Rodeio",
+                estado: "SC",
+                region: "Sul",
+                lat: -26.9766,
+                lng: -49.0350,
+                descricao: "3 mil habitantes. Vale Europeu minúsculo. Silêncio absoluto, aluguel muito baixo, mas realmente isolado.",
+                aluguel: "R$ 650",
+                aluguelNum: 650,
+                habitantes: "3 mil",
+                altitude: "520m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 10,
+                tranquilidade: 10,
+                silencio: 10,
+                praia: "160 km",
+                casal6k: "Excelente",
+                highlights: ["Minúsculo", "Aluguel baixíssimo", "Silêncio total", "Muito isolado"],
+                images: ["https://www.vidadeturista.com/wp-content/uploads/2013/01/cascata-o-salto-rodeio-sc.jpg", "https://www.viagensecaminhos.com/wp-content/uploads/2022/11/rodeio-sc-caminho-dos-anjos.jpg", "https://www.viagensecaminhos.com/wp-content/uploads/2022/11/rodeio-sc-igreja-sao-virgilio-696x464.jpg"],
+                featured: true
+            },
+            {
+                nome: "Benedito Novo",
+                estado: "SC",
+                region: "Sul",
+                lat: -27.0186,
+                lng: -48.9808,
+                descricao: "9 mil habitantes. Vale Europeu português, silêncio, aluguel baixo, muito tranquilo, natureza.",
+                aluguel: "R$ 750",
+                aluguelNum: 750,
+                habitantes: "9 mil",
+                altitude: "480m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 9,
+                tranquilidade: 10,
+                silencio: 9,
+                praia: "155 km",
+                casal6k: "Excelente",
+                highlights: ["Vale Europeu", "Silêncio", "Aluguel baixo", "Natureza"],
+                images: ["https://www.viagensecaminhos.com/wp-content/uploads/2022/10/benedito-novo-768x432.jpg", "https://www.vidadeturista.com/wp-content/uploads/2013/01/salto-do-zinco-benedito-novo-1.jpg", "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg5w7-Y4gNDED30k4EukjJ7-flO7wMUUmmD-DDp5vTmjGf2gVgbbQvZx4o3LeoqO1XAioU0teNs0v3EW011cjOYtWfYcwnjmkCkruThWYKJcIZrEjrMo02T0pSTI-IMiEZTasRFLGhyphenhyphengjYRlIbwMWhnlpDiXrBy7h9kDaf0J3_ePpgE5_bDAM9NcMlsyGQ/s3766/IMG_20191115_162833663_HDR.jpg"],
+                featured: true
+            },
+            {
+                nome: "Doutor Pedrinho",
+                estado: "SC",
+                region: "Sul",
+                lat: -27.0000,
+                lng: -48.9500,
+                descricao: "2 mil habitantes. Minúsculo, silêncio absoluto, aluguel muito baixo, verdadeiro refúgio.",
+                aluguel: "R$ 600",
+                aluguelNum: 600,
+                habitantes: "2 mil",
+                altitude: "450m",
+                clima: "Temperado",
+                qualidade: 9,
+                seguranca: 10,
+                tranquilidade: 10,
+                silencio: 10,
+                praia: "170 km",
+                casal6k: "Excelente",
+                highlights: ["Minúsculo demais", "Aluguel ínfimo", "Isolado", "Muito tranquilo"],
+                images: ["https://www.viagensecaminhos.com/wp-content/uploads/2022/11/doutor-pedrinho-salto-donner-1068x600.jpg", "https://static.ndmais.com.br/2020/12/Gruta.-Foto_-Bruno-Bottaro-_-Prefeitura-Municipal-de-Doutor-Pedrinhojpg-scaled.jpg", "https://www.viagensecaminhos.com/wp-content/uploads/2022/11/doutor-pedrinho-cachoeira-veu-da-noiva-768x512.jpg"],
+                featured: true
+            },
+
+            // RS
+            {
+                nome: "Nova Petrópolis",
+                estado: "RS",
+                region: "Sul",
+                lat: -29.3808,
+                lng: -51.1197,
+                descricao: "43 mil habitantes. Colônia germânica, paisagem alpina, clima frio, vinhedos, turismo (pode ser barulhento).",
+                aluguel: "R$ 1.400",
+                aluguelNum: 1400,
+                habitantes: "43 mil",
+                altitude: "650m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 7,
+                tranquilidade: 6,
+                silencio: 5,
+                praia: "500 km",
+                casal6k: "Confortável",
+                highlights: ["Paisagem alpina", "Vinhedos", "Colônia germânica", "Turismo"],
+                images: ["https://www.travelterapia.com.br/wp-content/uploads/2023/10/Ninho-das-Aguias-3-1170x878.jpg", "https://chapeudeviagem.com.br/wp-content/uploads/2023/01/imagem_2023-01-31_143804844.png", "https://catracalivre.com.br/wp-content/uploads/2025/01/nova-petropolis-rio-grande-do-sul-brazil-910x607.jpg"],
+                featured: false
+            },
+
+            // MG
+            {
+                nome: "Caxambu",
+                estado: "MG",
+                region: "Sudeste",
+                lat: -21.9711,
+                lng: -44.9392,
+                descricao: "22 mil habitantes. Estância de saúde histórica, clima ameno, paisagem de serras, turismo moderado.",
+                aluguel: "R$ 1.100",
+                aluguelNum: 1100,
+                habitantes: "22 mil",
+                altitude: "1200m",
+                clima: "Ameno",
+                qualidade: 8,
+                seguranca: 7,
+                tranquilidade: 7,
+                silencio: 6,
+                praia: "400 km",
+                casal6k: "Confortável",
+                highlights: ["Estância de saúde", "Clima ameno", "Paisagem serra", "Turismo"],
+                images: ["https://shopingressos.com.br/parque-aguas-caxambu/images/parqueaguascaxambu/imagem7.jpg", "https://s2-casavogue.glbimg.com/O4Ue1mCtfEwwh56GHQcREqxV3K4=/0x0:2121x1414/1000x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_d72fd4bf0af74c0c89d27a5a226dbbf8/internal_photos/bs/2025/E/v/wF0U1MS66Yv8q3tQ6NQw/caxambu-04.jpg", "https://portalhortolandia.com.br/wp-content/uploads/2023/06/Caxambu.jpg"],
+                featured: false
+            },
+            {
+                nome: "São Lourenço",
+                estado: "MG",
+                region: "Sudeste",
+                lat: -21.9564,
+                lng: -44.9775,
+                descricao: "21 mil habitantes. Clima alpino, estância de saúde, paisagem montanhosa, água mineral, turismo balneário.",
+                aluguel: "R$ 1.050",
+                aluguelNum: 1050,
+                habitantes: "21 mil",
+                altitude: "1350m",
+                clima: "Frio",
+                qualidade: 8,
+                seguranca: 8,
+                tranquilidade: 7,
+                silencio: 6,
+                praia: "420 km",
+                casal6k: "Confortável",
+                highlights: ["Clima alpino", "Água mineral", "Montanhoso", "Estância"],
+                images: ["https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhn0AhhEzMiWKrEv6d6XmWDxOQe66HXbeQ2bnnO3C3VQcAWhqFObiz2p85GDDqLjIShSDNNUz8IOI13KIrHUAsCmH1XWHTU97NxH0LD0Ga9XVO5ip_JLlxKHWFjwaRm_GzKZoXm7Nxq72Mr8dhNOUsBbIXCyafkz4ckRSCO8C0v5_W2uM-Die7CaPExFck/s1999/sao-lourenco.jpg", "https://cseprs3.s3.amazonaws.com/email-editor-files/aca5b772-54d1-4baa-6a87-08d99434db3b/59b32494-f677-416f-97ff-4b3e34bcc328.jpg", "https://i.pinimg.com/originals/40/24/70/402470bd637e3c3a157c25e678e157cd.webp"],
+                featured: true
+            },
+            {
+                nome: "Santa Rita do Sapucaí",
+                estado: "MG",
+                region: "Sudeste",
+                lat: -22.0152,
+                lng: -45.1894,
+                descricao: "38 mil habitantes. Vale tecnológico, clima ameno, paisagem verde, comunidade inovadora, moderno.",
+                aluguel: "R$ 1.000",
+                aluguelNum: 1000,
+                habitantes: "38 mil",
+                altitude: "1000m",
+                clima: "Ameno",
+                qualidade: 8,
+                seguranca: 7,
+                tranquilidade: 6,
+                silencio: 5,
+                praia: "380 km",
+                casal6k: "Confortável",
+                highlights: ["Vale tecnológico", "Clima ameno", "Moderno", "Comunidade criativa"],
+                images: ["https://static.wixstatic.com/media/39e28b_cbe70711f8c54fe3b340662a77287366~mv2.jpg/v1/fill/w_980,h_551,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/39e28b_cbe70711f8c54fe3b340662a77287366~mv2.jpg", "https://mir-s3-cdn-cf.behance.net/project_modules/2800_opt_1/9d1a8d156516643.636a9218653e5.jpeg", "https://1.bp.blogspot.com/-5_W841LPzLo/X1RABC3FaHI/AAAAAAAAz8o/ELEs6_pcmIIY92Rm0o5d6kAsS5fahy8cwCLcBGAsYHQ/s1600/PSX_20200310_121302.jpg"],
+                featured: false
+            },
+            {
+                nome: "Carmo de Minas",
+                estado: "MG",
+                region: "Sudeste",
+                lat: -21.8658,
+                lng: -45.4167,
+                descricao: "8 mil habitantes. Região de café, montanhoso, tranquilo, clima ameno, aluguel baixo.",
+                aluguel: "R$ 700",
+                aluguelNum: 700,
+                habitantes: "8 mil",
+                altitude: "1100m",
+                clima: "Ameno",
+                qualidade: 7,
+                seguranca: 8,
+                tranquilidade: 9,
+                silencio: 8,
+                praia: "450 km",
+                casal6k: "Excelente",
+                highlights: ["Região de café", "Montanhoso", "Aluguel baixo", "Tranquilo"],
+                images: ["https://i1.wp.com/circuitodasaguasmg.com.br/wp-content/uploads/2017/09/carmo-minas-10.jpg?w=1080", "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj5P36aVZ5T0zXJe60IFKY5_MDx0pHmprCFomYAZbSIe0kpzKm4ndDWhPtvVyMs-3Li5VePE7QTS0HQdCTJBCM7T-YBPQQmLxz_KJ5N2TOvUPN2oYVG-Ieh0x1VY9KgDDC7-RCFiwSodpwP/w1200-h630-p-k-no-nu/sao-lourenco-075-DSC_9664-8x6.JPG", "https://ak-d.tripcdn.com/images/ww0e1f000001grglv1E9B_C_420_280.png"],
+                featured: true
+            },
+
+            // ES
+            {
+                nome: "Domingos Martins",
+                estado: "ES",
+                region: "Sudeste",
+                lat: -20.3728,
+                lng: -40.7042,
+                descricao: "10 mil habitantes. Serrano de 800m, clima frio, comunidade imigrante europeia, tranquilo e seguro.",
+                aluguel: "R$ 900",
+                aluguelNum: 900,
+                habitantes: "10 mil",
+                altitude: "800m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 8,
+                tranquilidade: 9,
+                silencio: 8,
+                praia: "50 km",
+                casal6k: "Excelente",
+                highlights: ["Serrano", "Imigrante europeia", "Perto de praia", "Tranquilo"],
+                images: ["https://guiaviajarmelhor.com.br/wp-content/uploads/2026/02/Domingos-Martins-Espirito-Santo.webp", "https://i.pinimg.com/originals/37/5d/72/375d72421e500e8d18240f292d6aa3a4.jpg", "https://i.pinimg.com/originals/0c/bc/52/0cbc52ab3503b23fdbf304f51ff457dc.jpg"],
+                featured: true
+            },
+            {
+                nome: "Santa Teresa",
+                estado: "ES",
+                region: "Sudeste",
+                lat: -19.9128,
+                lng: -40.6039,
+                descricao: "9 mil habitantes. Serrana, floresta atlântica, comunidade imigrante, artesanato, ecoturismo, muito tranquilo.",
+                aluguel: "R$ 850",
+                aluguelNum: 850,
+                habitantes: "9 mil",
+                altitude: "600m",
+                clima: "Temperado",
+                qualidade: 9,
+                seguranca: 8,
+                tranquilidade: 9,
+                silencio: 8,
+                praia: "80 km",
+                casal6k: "Excelente",
+                highlights: ["Floresta Atlântica", "Artesanato", "Ecoturismo", "Imigrante"],
+                images: ["https://imagedelivery.net/ZwI98Xzesy9y5C72ogEH0A/2bf1e444-b3fb-4897-ed52-13fb78feaf00/original", "https://storage.googleapis.com/48877118-7272-4a4d-b302-0465d8aa4548/8acf37a5-e3ba-41ef-9a2f-055dc9e2188a/79bfc731-dfe1-4d02-a396-adaf01d253fd.jpg", "https://imagedelivery.net/ZwI98Xzesy9y5C72ogEH0A/f9a19bbd-43eb-472d-9d27-9ef29bd2e900/public"],
+                featured: true
+            },
+            {
+                nome: "Venda Nova do Imigrante",
+                estado: "ES",
+                region: "Sudeste",
+                lat: -20.8272,
+                lng: -41.1697,
+                descricao: "10 mil habitantes. Serrana, café, imigrante italiana, paisagem montanhosa, tranquilo, aluguel baixo.",
+                aluguel: "R$ 750",
+                aluguelNum: 750,
+                habitantes: "10 mil",
+                altitude: "1100m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 8,
+                tranquilidade: 9,
+                silencio: 8,
+                praia: "100 km",
+                casal6k: "Excelente",
+                highlights: ["Imigrante italiana", "Café", "Montanhoso", "Aluguel baixo"],
+                images: ["http://descubravendanova.es.gov.br/wp-content/uploads/2021/09/63-ARNOBIO-FALQUETTO11.jpg", "https://www.carpemundi.com.br/wp-content/uploads/2026/06/venda-nova-espirito-santo-turismo-1140x608.jpg", "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiAeOwsjmAVKdMSWU9ZSSDViudRRA-1J9k_tAnCmYI1pIZJjXnJzrLuCDvhMkRHHLS0jB2LAUYUIlCrMPjchjQycNK5cfcj-gpoqv4OcYzPg4-x2lUwi2RVVCxoemFedU9ZnI-SBoGPtqI5/s1600/venda-nova-do-imigrante-oasis-em-espirito-santo-8.jpg"],
+                featured: false
+            },
+
+            // PB
+            {
+                nome: "Areia",
+                estado: "PB",
+                region: "Nordeste",
+                lat: -6.9639,
+                lng: -35.7069,
+                descricao: "22 mil habitantes. Serrana, brejo paraibano, clima ameno, história cultural, tranquilo, aluguel baixo.",
+                aluguel: "R$ 650",
+                aluguelNum: 650,
+                habitantes: "22 mil",
+                altitude: "600m",
+                clima: "Temperado",
+                qualidade: 7,
+                seguranca: 7,
+                tranquilidade: 8,
+                silencio: 7,
+                praia: "80 km",
+                casal6k: "Excelente",
+                highlights: ["Brejo paraibano", "História cultural", "Serrana", "Aluguel baixo"],
+                images: ["https://turismoemfoco.com.br/v1/wp-content/uploads/2023/06/Areiaentrada.jpeg", "http://www.paraibacriativa.com.br/wp-content/uploads/2020/05/Clima-da-serra.-Areia-PB-1024x768.jpg", "https://alemdacurva.com/wp-content/uploads/2019/06/o-que-fazer-em-areia-na-paraiba-min.jpg"],
+                featured: false
+            },
+            {
+                nome: "Bananeiras",
+                estado: "PB",
+                region: "Nordeste",
+                lat: -6.7742,
+                lng: -35.6231,
+                descricao: "12 mil habitantes. Vale do Mamanguape, brejo, paisagem verde, tranquilo, bananicultura, aluguel baixo.",
+                aluguel: "R$ 600",
+                aluguelNum: 600,
+                habitantes: "12 mil",
+                altitude: "500m",
+                clima: "Temperado",
+                qualidade: 7,
+                seguranca: 7,
+                tranquilidade: 8,
+                silencio: 7,
+                praia: "60 km",
+                casal6k: "Excelente",
+                highlights: ["Vale verde", "Brejo", "Bananicultura", "Aluguel baixo"],
+                images: ["https://viagemeturismo.abril.com.br/wp-content/uploads/2016/12/bananeiras-paraiba.jpeg", "https://as1.ftcdn.net/jpg/02/16/91/68/1000_F_216916801_zZKJz1AcUZsNdb2SE1cL8jtMiFTpJ2M8.jpg", "https://i.ytimg.com/vi/1F_HaMjkzBM/maxresdefault.jpg"],
+                featured: false
+            },
+            {
+                nome: "Campina Grande",
+                estado: "PB",
+                region: "Nordeste",
+                lat: -7.2302,
+                lng: -35.8819,
+                descricao: "420 mil habitantes. Polo têxtil, universitária, clima seco, vida urbana moderada, eventos culturais.",
+                aluguel: "R$ 1.200",
+                aluguelNum: 1200,
+                habitantes: "420 mil",
+                altitude: "520m",
+                clima: "Semiárido",
+                qualidade: 7,
+                seguranca: 6,
+                tranquilidade: 5,
+                silencio: 4,
+                praia: "150 km",
+                casal6k: "Confortável",
+                highlights: ["Polo têxtil", "Universitária", "Eventos culturais", "Vida urbana"],
+                images: ["https://www.viagensecaminhos.com/wp-content/uploads/2025/12/campina-grande-acude-velho.jpg", "https://blogdomaxsilva.com.br/wp-content/uploads/2021/02/campina-grande.jpg", "https://img.freepik.com/fotos-premium/campina-grande-paraiba-brasil-vista-do-antigo-acude-com-predios-da-cidade_491130-628.jpg?w=2000"],
+                featured: false
+            },
+
+            // PE
+            {
+                nome: "Garanhuns",
+                estado: "PE",
+                region: "Nordeste",
+                lat: -8.8845,
+                lng: -36.4924,
+                descricao: "135 mil habitantes. Serrana (850m), clima frio para NE, festas juninas, vida urbana, aluguel moderado.",
+                aluguel: "R$ 1.100",
+                aluguelNum: 1100,
+                habitantes: "135 mil",
+                altitude: "850m",
+                clima: "Temperado",
+                qualidade: 7,
+                seguranca: 6,
+                tranquilidade: 6,
+                silencio: 5,
+                praia: "200 km",
+                casal6k: "Confortável",
+                highlights: ["Serrana", "Festas juninas", "Clima frio", "Vida urbana"],
+                images: ["https://cdn-hweb.hsystem.com.br/6279608c4528479b56b87186/05735ad7956d4d55bf694b73d775cefa.jpg", "https://tripsardou.com/wp-content/uploads/2024/08/Garanhuns-panorama-1024x585.jpg", "http://www.guiadoturismobrasil.com/up/img/1446805413.jpg"],
+                featured: false
+            },
+            {
+                nome: "Gravatá",
+                estado: "PE",
+                region: "Nordeste",
+                lat: -8.2039,
+                lng: -35.5625,
+                descricao: "73 mil habitantes. Vale rural, serrana 500m, clima ameno, turismo, artesanato, aluguel moderado.",
+                aluguel: "R$ 950",
+                aluguelNum: 950,
+                habitantes: "73 mil",
+                altitude: "500m",
+                clima: "Temperado",
+                qualidade: 7,
+                seguranca: 7,
+                tranquilidade: 7,
+                silencio: 6,
+                praia: "80 km",
+                casal6k: "Excelente",
+                highlights: ["Vale rural", "Serrana", "Artesanato", "Turismo"],
+                images: ["https://www.praias-360.com.br/img-800/pe/sao-jose-da-coroa-grande/pe-sao-jose-da-coroa-grande-praia-de-gravata-030.jpg", "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/27/8f/2f/d4/outra-vista-em-primeiro.jpg?w=1200&h=1200&s=1", "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2b/ba/7e/bc/rota-das-palmeiras.jpg?w=1000&h=800&s=1"],
+                featured: false
+            },
+            {
+                nome: "Caruaru",
+                estado: "PE",
+                region: "Nordeste",
+                lat: -8.2828,
+                lng: -35.9764,
+                descricao: "368 mil habitantes. Polo confeccionista, vida urbana, clima quente, comércio intenso, eventos, aluguel moderado.",
+                aluguel: "R$ 1.050",
+                aluguelNum: 1050,
+                habitantes: "368 mil",
+                altitude: "560m",
+                clima: "Tropical",
+                qualidade: 7,
+                seguranca: 5,
+                tranquilidade: 4,
+                silencio: 3,
+                praia: "120 km",
+                casal6k: "Confortável",
+                highlights: ["Polo confeccionista", "Vida urbana", "Comercial", "Eventos"],
+                images: ["https://www.viagensecaminhos.com/wp-content/uploads/2024/12/caruaru.jpg", "https://as2.ftcdn.net/v2/jpg/05/15/21/53/1000_F_515215378_ChyiUfi3HoWLnpwTQquLlZ76KAhCepG0.jpg", "https://s2-g1.glbimg.com/ioAcnimNsuUPIs0qeTkPCcbyouE=/4160x0/filters:format(jpeg)/https://i.s3.glbimg.com/v1/AUTH_59edd422c0c84a879bd37670ae4f538a/internal_photos/bs/2025/M/g/BGea6TTL6OTxioqfowpA/whatsapp-image-2025-01-08-at-17.34.29.jpeg"],
+                featured: false
+            },
+
+            // CE
+            {
+                nome: "Guaramiranga",
+                estado: "CE",
+                region: "Nordeste",
+                lat: -4.2531,
+                lng: -38.9669,
+                descricao: "9 mil habitantes. Serra da Ibiapaba, 900m, clima frio, cachoeiras, ecoturismo, aluguel baixo.",
+                aluguel: "R$ 800",
+                aluguelNum: 800,
+                habitantes: "9 mil",
+                altitude: "900m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 8,
+                tranquilidade: 9,
+                silencio: 8,
+                praia: "100 km",
+                casal6k: "Excelente",
+                highlights: ["Serra tropical", "Clima frio", "Cachoeiras", "Ecoturismo"],
+                images: ["https://blogdeviagemeturismo.com.br/wp-content/uploads/2023/05/Pico-Alto-Serra-de-Guaramiranga-CE-1.jpg", "https://guaramiranga.com.br/wp-content/uploads/2022/01/20211228_172854-01-scaled-1.jpeg", "https://www.transportal.com.br/noticias/wp-content/uploads/2023/07/visao-panoramica-da-serra-de-guaramiranga-ce.jpg"],
+                featured: false
+            },
+            {
+                nome: "Viçosa do Ceará",
+                estado: "CE",
+                region: "Nordeste",
+                lat: -4.0294,
+                lng: -40.7886,
+                descricao: "13 mil habitantes. Serrana, paisagem rochosa, clima frio, tranquilo, aluguel baixo, aventura.",
+                aluguel: "R$ 700",
+                aluguelNum: 700,
+                habitantes: "13 mil",
+                altitude: "850m",
+                clima: "Temperado",
+                qualidade: 8,
+                seguranca: 8,
+                tranquilidade: 9,
+                silencio: 8,
+                praia: "150 km",
+                casal6k: "Excelente",
+                highlights: ["Paisagem rochosa", "Serrana", "Aventura", "Aluguel baixo"],
+                images: ["https://www.guiadoturismobrasil.com/up/img/1446908924.jpg", "https://4.bp.blogspot.com/-e8EGBNsceFI/WPZ9P3YlvzI/AAAAAAAAKlQ/67RRosiL_cgYVB-hyqrK3AhLpuGRVl_sgCEw/s1600/23.JPG", "https://i.pinimg.com/736x/14/ba/32/14ba327af475a194000ad1546101a6be.jpg"],
+                featured: false
+            },
+
+            // AL
+            {
+                nome: "Piranhas",
+                estado: "AL",
+                region: "Nordeste",
+                lat: -9.7361,
+                lng: -37.7586,
+                descricao: "20 mil habitantes. São Francisco (rio), paisagem semiárida, clima quente, aluguel baixo, tranquilo.",
+                aluguel: "R$ 650",
+                aluguelNum: 650,
+                habitantes: "20 mil",
+                altitude: "180m",
+                clima: "Semiárido",
+                qualidade: 6,
+                seguranca: 7,
+                tranquilidade: 7,
+                silencio: 6,
+                praia: "60 km",
+                casal6k: "Excelente",
+                highlights: ["Rio São Francisco", "Semiárido", "Aluguel baixo", "Tranquilo"],
+                images: ["https://vidasemparedes.com.br/wp-content/uploads/2022/03/piranhas-vidasemparedes-16.jpg", "https://www.viajali.com.br/wp-content/uploads/2022/04/piranhas-alagoas-16-595xh.jpg", "https://www.viajali.com.br/wp-content/uploads/2022/04/piranhas-alagoas-10.jpg"],
+                featured: false
+            },
+            {
+                nome: "Marechal Deodoro",
+                estado: "AL",
+                region: "Nordeste",
+                lat: -9.0039,
+                lng: -36.0139,
+                descricao: "28 mil habitantes. Litoral histórico, lagoas, praia dos Franceses, turismo moderado, aluguel moderado.",
+                aluguel: "R$ 1.000",
+                aluguelNum: 1000,
+                habitantes: "28 mil",
+                altitude: "10m",
+                clima: "Tropical",
+                qualidade: 7,
+                seguranca: 6,
+                tranquilidade: 6,
+                silencio: 5,
+                praia: "0 km",
+                casal6k: "Confortável",
+                highlights: ["Litoral", "Lagoas", "História", "Praia"],
+                images: ["https://www.dicasdeviagem.com/wp-content/uploads/2023/09/marechal-deodoro-praia-do-frances-@lucasmenesesphoto-scaled.jpg", "https://www.dicasdeviagem.com/wp-content/uploads/2023/09/vista-aerea-praia-do-frances-@lucasmenesesphoto-8-1500x1560.jpg", "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1a/64/04/f7/caption.jpg?w=600&h=600&s=1"],
+                featured: false
+            },
+
+            // BA
+            {
+                nome: "Mucugê",
+                estado: "BA",
+                region: "Nordeste",
+                lat: -13.0039,
+                lng: -41.3692,
+                descricao: "10 mil habitantes. Chapada Diamantina, cachoeiras, paisagem montanhosa, clima frio, aluguel baixo, aventura.",
+                aluguel: "R$ 750",
+                aluguelNum: 750,
+                habitantes: "10 mil",
+                altitude: "1200m",
+                clima: "Temperado",
+                qualidade: 9,
+                seguranca: 8,
+                tranquilidade: 9,
+                silencio: 8,
+                praia: "300 km",
+                casal6k: "Excelente",
+                highlights: ["Chapada Diamantina", "Cachoeiras", "Aventura", "Montanhoso"],
+                images: ["https://dicasdabahia.com.br/wp-content/uploads/sites/28/2021/03/praia-do-mucuge-arraial-d-ajuda-porto-seguro-jpg.webp", "https://www.viajali.com.br/wp-content/uploads/2020/04/mucuge-7-730x449.jpg", "https://1.bp.blogspot.com/-AFJhUchRJ14/V8G9vyp5b2I/AAAAAAAB5VA/PUzBXBGh1roYe8vxVRQRsTpIC7qbhvSTACLcB/s1600/Guia-Chapada-Diamantina-Cachoeira-das-Andorinhas-Mucuge.jpg"],
+                featured: false
+            },
+            {
+                nome: "Vitória da Conquista",
+                estado: "BA",
+                region: "Nordeste",
+                lat: -14.8644,
+                lng: -40.8394,
+                descricao: "340 mil habitantes. Planalto baiano (1000m), clima frio, vida urbana, comércio, aluguel moderado.",
+                aluguel: "R$ 1.300",
+                aluguelNum: 1300,
+                habitantes: "340 mil",
+                altitude: "1000m",
+                clima: "Temperado",
+                qualidade: 7,
+                seguranca: 6,
+                tranquilidade: 5,
+                silencio: 4,
+                praia: "400 km",
+                casal6k: "Confortável",
+                highlights: ["Planalto baiano", "Clima frio", "Vida urbana", "Comércio"],
+                images: ["https://p2.trrsf.com/image/fget/cf/774/0/images.terra.com/2025/05/14/545396533-vitoria-da-conquista-bahia.jpg", "https://lh5.googleusercontent.com/p/AF1QipPUvHXWeSDzAwCe0nHZViFAQ4911wEo59ocKuiW=s550", "https://lh5.googleusercontent.com/p/AF1QipO-uE4nrv79hPFkWZdHq7zjpaiAAydIiLnh5zeA=s550"],
+                featured: false
+            }
+        ];
+
+let currentView='grid', filteredCities=[...cidades], map=null, detailMap=null;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const q=s=>encodeURIComponent(`${s.nome}, ${s.estado}, Brasil`);
+const links=s=>({
+ yt:`https://www.youtube.com/results?search_query=${q(s)}%20cidade`,
+ olx:`https://www.olx.com.br/brasil?q=${q(s)}%20aluguel`,
+ maps:`https://www.google.com/maps/search/?api=1&query=${q(s)}`,
+ wiki:`https://www.google.com/search?q=${q(s)}%20turismo`,
+});
+function stars(n){return '★'.repeat(Math.round(n))+'☆'.repeat(10-Math.round(n))}
+function scoreRow(label,n){return `<div class="score"><span class="score-label">${label}</span><span class="bar"><i style="width:${n*10}%"></i></span><span class="score-num">${n}</span></div>`}
+function budgetClass(c){return /Excelente|Muito confortável/i.test(c.casal6k)?'good':/Apertado/i.test(c.casal6k)?'warn':''}
+function renderCities(){
+ const box=$('citiesGrid'), no=$('noResults');
+ if(!filteredCities.length){box.innerHTML='';box.style.display='none';no.style.display='block';return}
+ box.style.display='grid';no.style.display='none';
+ box.innerHTML=filteredCities.map((c,i)=>{
+   const l=links(c), rentPct=Math.round(c.aluguelNum/6000*100);
+   return `<article class="city-card ${c.featured?'featured':''}" data-city="${esc(c.nome)}">
+      <div class="photo-strip">${c.images.slice(0,3).map((im,j)=>`<img src="${im}" alt="${esc(c.nome)} — foto ${j+1}" loading="lazy" onerror="this.style.opacity=.25">`).join('')}</div>
+      <div class="card-body">
+       <div class="city-top"><div><div class="city-name">${esc(c.nome)}</div><div class="city-state">${esc(c.estado)} · ${esc(c.region)}</div></div>${c.featured?'<span class="rank-badge">★ destaque</span>':''}</div>
+       <div class="chips">
+         ${c.qualidade>=8?'<span class="chip good">Qualidade alta</span>':''}
+         ${c.seguranca>=8?'<span class="chip good">Seguro</span>':''}
+         ${c.tranquilidade>=9?'<span class="chip good">Muito tranquilo</span>':''}
+         ${c.clima?`<span class="chip">${esc(c.clima)}</span>`:''}
+       </div>
+       <p class="description">${esc(c.descricao)}</p>
+       <div class="metric-grid">
+         <div class="metric"><div class="metric-label">Aluguel médio</div><div class="metric-value">${esc(c.aluguel)}</div></div>
+         <div class="metric"><div class="metric-label">População</div><div class="metric-value">${esc(c.habitantes)}</div></div>
+         <div class="metric"><div class="metric-label">Praia</div><div class="metric-value">${esc(c.praia)}</div></div>
+         <div class="metric"><div class="metric-label">Altitude</div><div class="metric-value">${esc(c.altitude)}</div></div>
+       </div>
+       <div class="score-list">${scoreRow('Qualidade',c.qualidade)}${scoreRow('Segurança',c.seguranca)}${scoreRow('Tranquilidade',c.tranquilidade)}${scoreRow('Silêncio',c.silencio)}</div>
+       <div class="budget"><div class="budget-row"><span class="budget-title">Casal com R$ 5–6 mil/mês</span><span class="budget-value">${esc(c.casal6k)}</span></div><div class="rent-share">Aluguel informado ≈ ${rentPct}% de R$ 6 mil</div></div>
+       <div class="actions">
+         <a class="action primary" href="${l.yt}" target="_blank" rel="noopener">▶ Ver vídeos</a>
+         <a class="action" href="${l.olx}" target="_blank" rel="noopener">⌂ Procurar aluguel</a>
+         <a class="action" href="${l.maps}" target="_blank" rel="noopener">⌖ Mapa</a>
+       </div>
+       <button class="action" style="width:100%;margin-top:7px" onclick="openDetails('${esc(c.nome)}')">Ver perfil completo →</button>
+      </div>
+   </article>`}).join('');
+}
+function updateStats(){
+ if(!filteredCities.length){$('summary').innerHTML='';return}
+ const avg=(key)=>(filteredCities.reduce((a,c)=>a+c[key],0)/filteredCities.length).toFixed(1);
+ const rents=filteredCities.map(c=>c.aluguelNum);
+ $('summary').innerHTML=`
+ <div class="summary-card"><div class="summary-label">No resultado</div><div class="summary-value">${filteredCities.length}</div><div class="summary-detail">cidades encontradas</div></div>
+ <div class="summary-card"><div class="summary-label">Qualidade média</div><div class="summary-value">${avg('qualidade')}/10</div><div class="summary-detail">entre as cidades filtradas</div></div>
+ <div class="summary-card"><div class="summary-label">Segurança média</div><div class="summary-value">${avg('seguranca')}/10</div><div class="summary-detail">entre as cidades filtradas</div></div>
+ <div class="summary-card"><div class="summary-label">Faixa de aluguel</div><div class="summary-value">R$ ${Math.min(...rents)}–${Math.max(...rents)}</div><div class="summary-detail">valores do guia</div></div>`;
+}
+function applyFilters(){
+ const text=$('searchInput').value.trim().toLowerCase(), state=$('regionFilter').value;
+ filteredCities=cidades.filter(c=>(!text||`${c.nome} ${c.estado} ${c.region}`.toLowerCase().includes(text))&&(!state||c.estado===state));
+ const sort=$('sortBy').value;
+ const score=c=>(c.qualidade+c.seguranca+c.tranquilidade+c.silencio)/4;
+ if(sort==='aluguel')filteredCities.sort((a,b)=>a.aluguelNum-b.aluguelNum);
+ else if(sort==='seguranca')filteredCities.sort((a,b)=>b.seguranca-a.seguranca);
+ else if(sort==='qualidade')filteredCities.sort((a,b)=>b.qualidade-a.qualidade);
+ else if(sort==='tranquilidade')filteredCities.sort((a,b)=>b.tranquilidade-a.tranquilidade);
+ else if(sort==='encaixe')filteredCities.sort((a,b)=>score(b)-score(a)||a.aluguelNum-b.aluguelNum);
+ else filteredCities.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+ updateStats(); if(currentView==='grid')renderCities(); if(currentView==='table')renderTable(); if(currentView==='map')renderMapMarkers();
+}
+function renderTable(){
+ $('tableBody').innerHTML=filteredCities.map(c=>`<tr onclick="openDetails('${esc(c.nome)}')" style="cursor:pointer">
+ <td><strong>${esc(c.nome)}</strong><br><small>${esc(c.estado)}</small></td><td>${esc(c.aluguel)}</td><td>${esc(c.habitantes)}</td><td>${esc(c.clima)}</td><td>${esc(c.praia)}</td><td>${c.qualidade}/10</td><td>${c.seguranca}/10</td><td>${c.tranquilidade}/10</td><td>${c.silencio}/10</td><td>${esc(c.casal6k)}</td></tr>`).join('');
+}
+function setView(v){
+ currentView=v;
+ $('citiesGrid').style.display=v==='grid'?'grid':'none';
+ $('tableWrap').classList.toggle('active',v==='table');
+ $('mapContainer').classList.toggle('active',v==='map');
+ document.querySelectorAll('.view-toggle button').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+ if(v==='table')renderTable();
+ if(v==='map'){setTimeout(initMap,50);renderMapMarkers()}
+}
+function initMap(){
+ if(map)return;
+ map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:[-47,-16],zoom:4});
+ map.addControl(new maplibregl.NavigationControl(),'top-right');
+ map.on('load',renderMapMarkers);
+}
+function renderMapMarkers(){
+ if(!map)return;
+ document.querySelectorAll('.city-marker').forEach(e=>e.remove());
+ filteredCities.forEach(c=>{
+  const el=document.createElement('button');el.className='city-marker';el.textContent='';el.title=c.nome;
+  el.style.cssText='width:16px;height:16px;border-radius:50%;border:3px solid white;background:#315c3b;box-shadow:0 2px 7px rgba(0,0,0,.35);cursor:pointer';
+  el.onclick=()=>openDetails(c.nome);
+  new maplibregl.Marker({element:el}).setLngLat([c.lng,c.lat]).addTo(map);
+ });
+}
+function openDetails(name){
+ const c=cidades.find(x=>x.nome===name);if(!c)return;const l=links(c),rentPct=Math.round(c.aluguelNum/6000*100);
+ $('modalTitle').textContent=`${c.nome}, ${c.estado}`;
+ $('modalContent').innerHTML=`<div class="detail-hero">
+ <div class="detail-photos">${c.images.slice(0,3).map((im,i)=>`<img src="${im}" alt="${esc(c.nome)} — foto ${i+1}" onerror="this.style.opacity=.25">`).join('')}</div>
+ <div class="detail-summary"><h2>${esc(c.nome)}</h2><p style="color:var(--muted);margin-top:3px">${esc(c.estado)} · ${esc(c.region)} · ${esc(c.clima)}</p>
+ <div class="detail-grid" style="grid-template-columns:1fr 1fr;margin-top:15px">
+ <div class="metric"><div class="metric-label">Aluguel</div><div class="metric-value">${esc(c.aluguel)}</div></div>
+ <div class="metric"><div class="metric-label">Habitantes</div><div class="metric-value">${esc(c.habitantes)}</div></div>
+ <div class="metric"><div class="metric-label">Praia</div><div class="metric-value">${esc(c.praia)}</div></div>
+ <div class="metric"><div class="metric-label">Altitude</div><div class="metric-value">${esc(c.altitude)}</div></div></div>
+ <div class="score-list" style="margin-bottom:0">${scoreRow('Qualidade',c.qualidade)}${scoreRow('Segurança',c.seguranca)}${scoreRow('Tranquilidade',c.tranquilidade)}${scoreRow('Silêncio',c.silencio)}</div>
+ </div></div>
+ <p style="margin-top:18px;color:#596259">${esc(c.descricao)}</p>
+ <div class="chips">${c.highlights.map(h=>`<span class="chip">${esc(h)}</span>`).join('')}</div>
+ <div class="metric" style="margin-top:10px"><div class="metric-label">Viver com R$ 5–6 mil/mês para um casal</div><div class="metric-value">${esc(c.casal6k)}</div><div class="rent-share">O aluguel informado representa cerca de ${rentPct}% de R$ 6 mil.</div></div>
+ <div class="detail-actions"><a href="${l.yt}" target="_blank" rel="noopener">▶ YouTube — conhecer a cidade</a><a href="${l.olx}" target="_blank" rel="noopener">⌂ OLX — procurar aluguel</a><a href="${l.maps}" target="_blank" rel="noopener">⌖ Google Maps</a><a href="${l.wiki}" target="_blank" rel="noopener">◎ Pesquisar turismo</a></div>
+ <div class="detail-map" id="detailMap"></div>`;
+ $('modal').classList.add('open');document.body.style.overflow='hidden';
+ setTimeout(()=>{detailMap=new maplibregl.Map({container:'detailMap',style:'https://tiles.openfreemap.org/styles/liberty',center:[c.lng,c.lat],zoom:11});detailMap.addControl(new maplibregl.NavigationControl(),'top-right');new maplibregl.Marker().setLngLat([c.lng,c.lat]).addTo(detailMap)},50);
+}
+function closeDetails(){$('modal').classList.remove('open');document.body.style.overflow='';if(detailMap){detailMap.remove();detailMap=null}}
+$('searchInput').addEventListener('input',applyFilters);$('regionFilter').addEventListener('change',applyFilters);$('sortBy').addEventListener('change',applyFilters);
+document.querySelectorAll('.view-toggle button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+$('closeModal').onclick=closeDetails;$('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeDetails()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetails()});
+renderCities();updateStats();
+</script>
+
+</body>
+</html>
